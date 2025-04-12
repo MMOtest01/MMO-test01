@@ -1,19 +1,25 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');  // Assuming the user model is defined here
+const User = require('../models/User');
 
 const authMiddleware = async (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return res.status(401).json({ error: 'No token provided.' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);  // Verify the token
-    req.user = await User.findById(decoded.userId);  // Attach user to request
+    const decoded = jwt.verify(token, 'your_super_secret_key');  // Replace with your actual secret
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    req.user = user;
     next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid or expired token' });
+  } catch (error) {
+    res.status(401).json({ error: 'Unauthorized: Invalid or expired token.' });
   }
 };
 

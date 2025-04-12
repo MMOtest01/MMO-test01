@@ -78,7 +78,30 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 
-module.exports = router;
+// Select character to enter the game
+router.post('/select', authMiddleware, async (req, res) => {
+  const { characterId } = req.body;
+
+  try {
+    // Find the character by ID and ensure it belongs to the authenticated user
+    const character = await Character.findOne({ _id: characterId, userId: req.user._id });
+
+    if (!character) {
+      return res.status(404).json({ error: 'Character not found or does not belong to this user.' });
+    }
+
+    // Set the selected character in the session or a temporary user context
+    // You can store this in a session, a JWT, or a temporary database to track the session
+
+    // For demonstration, we just send back the character data
+    res.json({
+      message: 'Character selected successfully!',
+      character,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 module.exports = router;

@@ -4,12 +4,12 @@ const Character = require('../models/Character');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Session = require('../models/Session');
-const { authenticateJWT } = require('../middleware/auth');  // Import the correct middleware
+const authMiddleware = require('../middleware/auth');  // Use correct middleware
 
 // Create a character
-router.post('/create', authenticateJWT, async (req, res) => {
+router.post('/create', authMiddleware, async (req, res) => {
   const { name, class: characterClass } = req.body;
-  const userId = req.user.userId;  // Get the userId from JWT payload
+  const userId = req.user._id;  // Get the userId from JWT payload (Note: use _id from user object)
 
   try {
     const character = new Character({
@@ -27,9 +27,9 @@ router.post('/create', authenticateJWT, async (req, res) => {
 });
 
 // View all characters for the authenticated user
-router.get('/', authenticateJWT, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
-    const characters = await Character.find({ userId: req.user.userId });  // Query by userId
+    const characters = await Character.find({ userId: req.user._id });  // Query by userId (use _id from user object)
     if (characters.length === 0) {
       return res.status(404).json({ message: 'No characters found.' });
     }
@@ -40,18 +40,18 @@ router.get('/', authenticateJWT, async (req, res) => {
 });
 
 // Select character to enter the game
-router.post('/select', authenticateJWT, async (req, res) => {
+router.post('/select', authMiddleware, async (req, res) => {
   const { characterId } = req.body;
 
   try {
-    const character = await Character.findOne({ _id: characterId, userId: req.user.userId });
+    const character = await Character.findOne({ _id: characterId, userId: req.user._id });
 
     if (!character) {
       return res.status(404).json({ error: 'Character not found or does not belong to this user.' });
     }
 
     const session = await Session.findOneAndUpdate(
-      { userId: req.user.userId },
+      { userId: req.user._id },
       { characterId, lastUpdated: new Date() },
       { upsert: true, new: true }
     );

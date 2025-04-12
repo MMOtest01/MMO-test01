@@ -21,6 +21,9 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB error", err));
 
+const characterRoute = require('./routes/character');
+app.use('/api/character', characterRoute);
+
 // Load models
 require('./models/User');
 require('./models/Character');

@@ -1,6 +1,6 @@
 // const express = require('express');
 const app = express();
-const authRoutes = require('./routes/auth');
+// const authRoutes = require('./routes/auth');
 
 // Use JSON middleware to parse incoming requests
 app.use(express.json());
@@ -41,7 +41,7 @@ app.use('/api/auth', authRoutes);
 
 // Setup
 // const app = express();
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());

@@ -4,6 +4,15 @@ const Character = require('../models/Character');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+const authMiddleware = require('../middleware/auth'); // <-- Add this line
+
+
+
+// const express = require('express');
+// const router = express.Router();
+// const Character = require('../models/Character');
+const authMiddleware = require('../middleware/auth');
+
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -18,22 +27,44 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Character creation route
-router.post('/create', authenticateToken, async (req, res) => {
-  const { name, class: charClass } = req.body;
+router.post('/create', authMiddleware, async (req, res) => {
+  const { name, class: characterClass } = req.body;
 
   try {
-    const newChar = new Character({
+    const newCharacter = new Character({
       name,
-      class: charClass,
-      owner: req.user.id,
-      // Optionally: set stats based on class here
+      class: characterClass,
+      userId: req.user.userId  // <--- comes from the middleware
     });
 
-    await newChar.save();
-    res.status(201).json({ message: 'Character created!', character: newChar });
+    await newCharacter.save();
+    res.status(201).json({ message: 'Character created successfully!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+// Create a new character
+router.post('/create', authMiddleware, async (req, res) => {
+  const { name, class: charClass } = req.body;
+  const userId = req.user.userId; // Extract from JWT
+
+  try {
+    const character = new Character({
+      name,
+      class: charClass,
+      userId: userId // Add this field
+    });
+
+    await character.save();
+    res.status(201).json({ message: 'Character created!', character });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+
 
 module.exports = router;

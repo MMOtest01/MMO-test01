@@ -31,7 +31,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 // const express = require('express');
-const app = express();
+// const app = express();
 app.use(express.json());
 
 // Auth route
@@ -40,7 +40,7 @@ app.use('/api/auth', authRoutes);
 
 
 // Setup
-const app = express();
+// const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware

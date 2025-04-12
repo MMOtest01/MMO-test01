@@ -4,20 +4,7 @@ const Character = require('../models/Character');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Session = require('../models/Session');
-const { authenticateJWT } = require('../middleware/auth');
-
-// Middleware to authenticate JWT (if not using the one from `authenticateJWT`)
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Missing token' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    next();
-  });
-};
+const { authenticateJWT } = require('../middleware/auth');  // Import the correct middleware
 
 // Create a character
 router.post('/create', authenticateJWT, async (req, res) => {
@@ -57,14 +44,12 @@ router.post('/select', authenticateJWT, async (req, res) => {
   const { characterId } = req.body;
 
   try {
-    // Find the character by ID and ensure it belongs to the authenticated user
     const character = await Character.findOne({ _id: characterId, userId: req.user.userId });
 
     if (!character) {
       return res.status(404).json({ error: 'Character not found or does not belong to this user.' });
     }
 
-    // Set the selected character in the session or a temporary user context
     const session = await Session.findOneAndUpdate(
       { userId: req.user.userId },
       { characterId, lastUpdated: new Date() },

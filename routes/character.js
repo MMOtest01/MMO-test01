@@ -3,17 +3,10 @@ const router = express.Router();
 const Character = require('../models/Character');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
-const { authenticateJWT } = require('../middleware/auth');
 const Session = require('../models/Session');
+const { authenticateJWT } = require('../middleware/auth');
 
-
-// const express = require('express');
-// const router = express.Router();
-// const Character = require('../models/Character');
-// const authMiddleware = require('../middleware/auth');
-
-// Middleware to authenticate JWT
+// Middleware to authenticate JWT (if not using the one from `authenticateJWT`)
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -47,9 +40,9 @@ router.post('/create', authenticateJWT, async (req, res) => {
 });
 
 // View all characters for the authenticated user
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authenticateJWT, async (req, res) => {
   try {
-    const characters = await Character.find({ userId: req.user._id });  // Query by userId
+    const characters = await Character.find({ userId: req.user.userId });  // Query by userId
     if (characters.length === 0) {
       return res.status(404).json({ message: 'No characters found.' });
     }
@@ -59,52 +52,29 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-
 // Select character to enter the game
-router.post('/select', authMiddleware, async (req, res) => {
+router.post('/select', authenticateJWT, async (req, res) => {
   const { characterId } = req.body;
 
   try {
     // Find the character by ID and ensure it belongs to the authenticated user
-    const character = await Character.findOne({ _id: characterId, userId: req.user._id });
+    const character = await Character.findOne({ _id: characterId, userId: req.user.userId });
 
     if (!character) {
       return res.status(404).json({ error: 'Character not found or does not belong to this user.' });
     }
 
     // Set the selected character in the session or a temporary user context
-    // You can store this in a session, a JWT, or a temporary database to track the session
-
-    // For demonstration, we just send back the character data
-    res.json({
-      message: 'Character selected successfully!',
-      character,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-
-router.post('/select', authMiddleware, async (req, res) => {
-  const { characterId } = req.body;
-
-  try {
-    const character = await Character.findOne({ _id: characterId, userId: req.user.userId });
-    if (!character) return res.status(404).json({ error: 'Character not found or not yours.' });
-
     const session = await Session.findOneAndUpdate(
       { userId: req.user.userId },
       { characterId, lastUpdated: new Date() },
       { upsert: true, new: true }
     );
 
-    res.status(200).json({ message: 'Character selected.', session });
+    res.status(200).json({ message: 'Character selected successfully!', session });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 module.exports = router;

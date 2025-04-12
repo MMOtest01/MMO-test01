@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const authRoutes = require('./routes/auth');
+const mongoose = require('mongoose');
 
 // Use JSON middleware to parse incoming requests
 app.use(express.json());
@@ -15,7 +16,7 @@ app.get('/', (req, res) => res.send('Hello World!'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 require('dotenv').config(); // only needed locally
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
@@ -69,3 +70,15 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+const bodyParser = require('body-parser');
+const characterRoutes = require('./routes/character');  // Add this line
+
+app.use(bodyParser.json());
+
+// Include the route in the app
+app.use('/api/character', characterRoutes);
+
+// Other routes and middleware...
+

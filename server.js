@@ -1,4 +1,4 @@
-const express = require('express');
+// const express = require('express');
 const app = express();
 const authRoutes = require('./routes/auth');
 
@@ -30,7 +30,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-const express = require('express');
+// const express = require('express');
 const app = express();
 app.use(express.json());
 

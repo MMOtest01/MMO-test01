@@ -54,7 +54,7 @@ router.post('/create', authMiddleware, async (req, res) => {
     const character = new Character({
       name,
       class: charClass,
-      userId: userId // Add this field
+      userId: userId 
     });
 
     await character.save();
@@ -67,20 +67,16 @@ router.post('/create', authMiddleware, async (req, res) => {
 // View all characters for the authenticated user
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    // Fetch characters for the logged-in user
-    const characters = await Character.find({ userId: req.user.id });
-
+    const characters = await Character.find({ userId: req.user._id });  // Query by userId
     if (characters.length === 0) {
       return res.status(404).json({ message: 'No characters found.' });
     }
-
     res.status(200).json(characters);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
-
 });
+
 
 module.exports = router;
 

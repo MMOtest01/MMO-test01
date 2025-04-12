@@ -3,28 +3,18 @@ const mongoose = require('mongoose');
 const characterSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    unique: true,
+    required: true
   },
   class: {
     type: String,
-    enum: ['Swordsman', 'Archer', 'Mage'], // You can expand this
-    required: true,
+    required: true
   },
-  level: {
-    type: Number,
-    default: 1,
-  },
-  stats: {
-    hp: { type: Number, default: 100 },
-    attack: { type: Number, default: 10 },
-    defense: { type: Number, default: 5 },
-  },
-  owner: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-}, { timestamps: true });
+    ref: 'User',  // Reference to the User model
+    required: true
+  }
+});
 
-module.exports = mongoose.model('Character', characterSchema);
+const Character = mongoose.model('Character', characterSchema);
+module.exports = Character;

@@ -11,7 +11,7 @@ const authMiddleware = require('../middleware/auth'); // <-- Add this line
 // const express = require('express');
 // const router = express.Router();
 // const Character = require('../models/Character');
-const authMiddleware = require('../middleware/auth');
+// const authMiddleware = require('../middleware/auth');
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {

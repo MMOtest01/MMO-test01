@@ -4,8 +4,8 @@ const Character = require('../models/Character');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const authMiddleware = require('../middleware/auth'); // <-- Add this line
-
+const { authenticateJWT } = require('../middleware/auth');
+const Session = require('../models/Session');
 
 
 // const express = require('express');
@@ -26,41 +26,23 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Character creation route
-router.post('/create', authMiddleware, async (req, res) => {
+// Create a character
+router.post('/create', authenticateJWT, async (req, res) => {
   const { name, class: characterClass } = req.body;
-
-  try {
-    const newCharacter = new Character({
-      name,
-      class: characterClass,
-      userId: req.user.userId  // <--- comes from the middleware
-    });
-
-    await newCharacter.save();
-    res.status(201).json({ message: 'Character created successfully!' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-// Create a new character
-router.post('/create', authMiddleware, async (req, res) => {
-  const { name, class: charClass } = req.body;
-  const userId = req.user.userId; // Extract from JWT
+  const userId = req.user.userId;  // Get the userId from JWT payload
 
   try {
     const character = new Character({
       name,
-      class: charClass,
-      userId: userId 
+      class: characterClass,
+      userId, // Associate the character with the authenticated user
     });
 
     await character.save();
-    res.status(201).json({ message: 'Character created!', character });
+    res.status(201).json({ message: 'Character created successfully!' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error(err);
+    res.status(400).json({ error: 'Character validation failed: ' + err.message });
   }
 });
 
@@ -98,6 +80,27 @@ router.post('/select', authMiddleware, async (req, res) => {
       message: 'Character selected successfully!',
       character,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+router.post('/select', authMiddleware, async (req, res) => {
+  const { characterId } = req.body;
+
+  try {
+    const character = await Character.findOne({ _id: characterId, userId: req.user.userId });
+    if (!character) return res.status(404).json({ error: 'Character not found or not yours.' });
+
+    const session = await Session.findOneAndUpdate(
+      { userId: req.user.userId },
+      { characterId, lastUpdated: new Date() },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({ message: 'Character selected.', session });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

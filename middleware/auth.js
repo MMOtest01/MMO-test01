@@ -2,10 +2,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const authMiddleware = async (req, res, next) => {
-  // 🔍 Log all incoming headers for debugging
+  // 🔍 Debug: log headers to verify token presence
   console.log('HEADERS RECEIVED:', req.headers);
 
-  // ✅ Support both standard and legacy token headers
+  // ✅ Try to extract token from either Authorization or x-access-token
   const bearerToken = req.header('Authorization')?.replace('Bearer ', '');
   const fallbackToken = req.headers['x-access-token'];
   const token = bearerToken || fallbackToken;
@@ -16,7 +16,8 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, 'your_super_secret_key'); // 🔐 Replace with process.env.JWT_SECRET in production
+    // ✅ Use your actual JWT secret (ideally from .env)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_super_secret_key');
     const user = await User.findById(decoded.userId);
 
     if (!user) {
@@ -24,12 +25,7 @@ const authMiddleware = async (req, res, next) => {
       throw new Error('User not found');
     }
 
-    req.user = user;
-    next();
+    req.user = user; // Attach user to request object
+    next(); // Continue to the next middleware or route
   } catch (error) {
-    console.error('❌ JWT verification failed:', error.message);
-    res.status(401).json({ error: 'Unauthorized: Invalid or expired token.' });
-  }
-};
-
-module.exports = authMiddleware;
+    console.error('

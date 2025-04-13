@@ -8,6 +8,9 @@ const authMiddleware = require('../middleware/auth');
 
 // ✅ Create a character
 router.post('/create', authMiddleware, async (req, res) => {
+  console.log('📩 /create hit'); // 🔍 Debug: route reached
+  console.log('Authenticated User ID:', req.user?._id); // 🔍 Debug: token verified and user attached
+
   const { name, class: characterClass, hairStyle, hairColor } = req.body;
   const userId = req.user._id;
 

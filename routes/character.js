@@ -1,45 +1,57 @@
 const express = require('express');
 const router = express.Router();
-const Character = require('../models/Character');
 const jwt = require('jsonwebtoken');
+const Character = require('../models/Character');
 const User = require('../models/User');
 const Session = require('../models/Session');
-const authMiddleware = require('../middleware/auth');  // Use correct middleware
+const authMiddleware = require('../middleware/auth');
 
-// Create a character
+// ✅ Create a character
 router.post('/create', authMiddleware, async (req, res) => {
-  const { name, class: characterClass } = req.body;
-  const userId = req.user._id;  // Get the userId from JWT payload (Note: use _id from user object)
+  const { name, class: characterClass, hairStyle, hairColor } = req.body;
+  const userId = req.user._id;
 
   try {
     const character = new Character({
       name,
       class: characterClass,
-      userId, // Associate the character with the authenticated user
+      userId,
+      hairStyle: hairStyle || 'default',
+      hairColor: hairColor || 'brown',
+      level: 1,
+      hp: 100,
+      exp: 0,
+      createdAt: new Date()
     });
 
     await character.save();
-    res.status(201).json({ message: 'Character created successfully!' });
+
+    res.status(201).json({
+      message: 'Character created successfully!',
+      characterId: character._id
+    });
   } catch (err) {
-    console.error(err);
+    console.error('Character creation error:', err.message);
     res.status(400).json({ error: 'Character validation failed: ' + err.message });
   }
 });
 
-// View all characters for the authenticated user
+// ✅ View all characters for the authenticated user
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const characters = await Character.find({ userId: req.user._id });  // Query by userId (use _id from user object)
+    const characters = await Character.find({ userId: req.user._id });
+
     if (characters.length === 0) {
       return res.status(404).json({ message: 'No characters found.' });
     }
+
     res.status(200).json(characters);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Select character to enter the game
+// ✅ Select a character to enter the game
 router.post('/select', authMiddleware, async (req, res) => {
   const { characterId } = req.body;
 
@@ -56,7 +68,10 @@ router.post('/select', authMiddleware, async (req, res) => {
       { upsert: true, new: true }
     );
 
-    res.status(200).json({ message: 'Character selected successfully!', session });
+    res.status(200).json({
+      message: 'Character selected successfully!',
+      session
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -16,7 +16,7 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    // ✅ Use your actual JWT secret (ideally from .env)
+    // ✅ Use your actual JWT secret (preferably from .env)
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_super_secret_key');
     const user = await User.findById(decoded.userId);
 
@@ -26,6 +26,11 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user; // Attach user to request object
-    next(); // Continue to the next middleware or route
+    next(); // Continue to next middleware or route
   } catch (error) {
-    console.error('
+    console.error('❌ JWT verification failed:', error.message);
+    return res.status(401).json({ error: 'Unauthorized: Invalid or expired token.' });
+  }
+};
+
+module.exports = authMiddleware;
